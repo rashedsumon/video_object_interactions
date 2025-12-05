@@ -2,6 +2,8 @@ import streamlit as st
 import cv2
 import numpy as np
 import tempfile
+import os
+
 from utils.object_tracker import detect_objects, draw_objects
 from utils.interaction_rules import check_interactions, plot_interaction_stats
 from data_loader import download_dataset
@@ -13,7 +15,7 @@ st.set_page_config(page_title="Object Interaction Analyzer", layout="wide")
 st.title("Real-Time Object Interaction Analysis")
 
 # -----------------------------
-# Download dataset
+# Check dataset
 # -----------------------------
 dataset_path = download_dataset()
 
