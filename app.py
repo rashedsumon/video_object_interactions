@@ -2,8 +2,6 @@ import streamlit as st
 import cv2
 import numpy as np
 import tempfile
-import os
-
 from utils.object_tracker import detect_objects, draw_objects
 from utils.interaction_rules import check_interactions, plot_interaction_stats
 from data_loader import download_dataset
@@ -54,8 +52,6 @@ if video_file:
                 cv2.line(frame, (x1c, y1c), (x2c, y2c), (0,0,255), 2)
 
         stframe.image(frame, channels="BGR")
-
-    cap.release()
 
 # -----------------------------
 # Interaction stats
