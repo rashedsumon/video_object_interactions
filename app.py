@@ -3,49 +3,25 @@ import cv2
 import numpy as np
 import tempfile
 import os
-import zipfile
 
 from utils.object_tracker import detect_objects, draw_objects
 from utils.interaction_rules import check_interactions, plot_interaction_stats
-import kagglehub
+from data_loader import download_dataset
 
-# -------------------------------
-# Config
-# -------------------------------
+# -----------------------------
+# Streamlit config
+# -----------------------------
 st.set_page_config(page_title="Object Interaction Analyzer", layout="wide")
 st.title("Real-Time Object Interaction Analysis")
 
-DATA_DIR = "data"
-DATASET = "kmader/videoobjecttracking"
-
-# -------------------------------
-# Set Kaggle credentials from Streamlit Secrets
-# -------------------------------
-os.environ["KAGGLE_USERNAME"] = st.secrets["KAGGLE_USERNAME"]
-os.environ["KAGGLE_KEY"] = st.secrets["KAGGLE_KEY"]
-
-# -------------------------------
-# Download Dataset
-# -------------------------------
-def download_dataset():
-    os.makedirs(DATA_DIR, exist_ok=True)
-
-    zip_path = kagglehub.dataset_download(dataset=DATASET, download_path=DATA_DIR)
-
-    if zip_path.endswith(".zip"):
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(DATA_DIR)
-        st.success(f"Dataset downloaded and extracted to: {DATA_DIR}")
-    else:
-        st.success(f"Dataset downloaded to: {zip_path}")
-
-    return DATA_DIR
-
+# -----------------------------
+# Download dataset
+# -----------------------------
 dataset_path = download_dataset()
 
-# -------------------------------
-# Video Upload
-# -------------------------------
+# -----------------------------
+# Video upload
+# -----------------------------
 video_file = st.file_uploader("Upload Video", type=["mp4", "avi"])
 stframe = st.empty()
 
@@ -61,6 +37,7 @@ if video_file:
         if not ret:
             break
 
+        # Object detection
         boxes = detect_objects(frame)
         interactions = check_interactions(boxes)
         frame = draw_objects(frame, boxes)
@@ -80,8 +57,8 @@ if video_file:
 
     cap.release()
 
-# -------------------------------
-# Interaction Stats
-# -------------------------------
+# -----------------------------
+# Interaction stats
+# -----------------------------
 st.subheader("Interaction Stats")
 st.button("Plot Interaction Frequency", on_click=plot_interaction_stats)
