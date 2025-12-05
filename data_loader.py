@@ -1,42 +1,26 @@
 import os
 import zipfile
 import streamlit as st
-import kagglehub
+import urllib.request
 
 DATA_DIR = "data"
-DATASET = "kmader/videoobjecttracking"
+DATASET_URL = "https://github.com/kmader/videoobjecttracking/archive/refs/heads/master.zip"  # Example public link
 
 def download_dataset():
-    # -----------------------------
-    # Set Kaggle credentials
-    # -----------------------------
-    KAGGLE_USERNAME = st.secrets.get("KAGGLE_USERNAME", os.environ.get("KAGGLE_USERNAME"))
-    KAGGLE_KEY = st.secrets.get("KAGGLE_KEY", os.environ.get("KAGGLE_KEY"))
-
-    if not KAGGLE_USERNAME or not KAGGLE_KEY:
-        st.error("Kaggle API credentials not found. Please set them in Streamlit secrets or environment variables.")
-        st.stop()
-
-    os.environ["KAGGLE_USERNAME"] = KAGGLE_USERNAME
-    os.environ["KAGGLE_KEY"] = KAGGLE_KEY
-
-    # -----------------------------
-    # Ensure data directory exists
-    # -----------------------------
     os.makedirs(DATA_DIR, exist_ok=True)
 
-    # -----------------------------
-    # Download dataset
-    # -----------------------------
-    zip_path = kagglehub.dataset_download(dataset=DATASET, download_path=DATA_DIR)
+    zip_path = os.path.join(DATA_DIR, "dataset.zip")
+    
+    # Download if not exists
+    if not os.path.exists(zip_path):
+        st.info("Downloading dataset...")
+        urllib.request.urlretrieve(DATASET_URL, zip_path)
+        st.success("Dataset downloaded!")
 
-    # Unzip manually
-    if zip_path.endswith(".zip"):
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(DATA_DIR)
-        st.success(f"Dataset downloaded and extracted to: {DATA_DIR}")
-    else:
-        st.success(f"Dataset downloaded to: {zip_path}")
+    # Extract
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(DATA_DIR)
+    st.success(f"Dataset extracted to: {DATA_DIR}")
 
     return DATA_DIR
 
