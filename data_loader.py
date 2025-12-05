@@ -1,8 +1,3 @@
-
-
-## **5️⃣ data_loader.py**
-
-
 import kagglehub
 import os
 
@@ -10,9 +5,16 @@ DATA_DIR = "data"
 DATASET = "kmader/videoobjecttracking"
 
 def download_dataset():
-    if not os.path.exists(DATA_DIR):
-        os.makedirs(DATA_DIR)
-    path = kagglehub.dataset_download(DATASET, download_path=DATA_DIR)
+    # Ensure the data directory exists
+    os.makedirs(DATA_DIR, exist_ok=True)
+
+    # Download and unzip the dataset
+    path = kagglehub.dataset_download(
+        dataset=DATASET,          # keyword argument required
+        download_path=DATA_DIR,
+        unzip=True                # automatically unzip
+    )
+
     print("Dataset downloaded to:", path)
     return path
 
