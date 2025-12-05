@@ -2,26 +2,61 @@ import streamlit as st
 import cv2
 import numpy as np
 import tempfile
+import os
+import zipfile
+
 from utils.object_tracker import detect_objects, draw_objects
 from utils.interaction_rules import check_interactions, plot_interaction_stats
-from data_loader import download_dataset
+import kagglehub
 
+# -------------------------------
+# Config
+# -------------------------------
 st.set_page_config(page_title="Object Interaction Analyzer", layout="wide")
 st.title("Real-Time Object Interaction Analysis")
 
-# Download dataset
+DATA_DIR = "data"
+DATASET = "kmader/videoobjecttracking"
+
+# -------------------------------
+# Set Kaggle credentials from Streamlit Secrets
+# -------------------------------
+os.environ["KAGGLE_USERNAME"] = st.secrets["KAGGLE_USERNAME"]
+os.environ["KAGGLE_KEY"] = st.secrets["KAGGLE_KEY"]
+
+# -------------------------------
+# Download Dataset
+# -------------------------------
+def download_dataset():
+    os.makedirs(DATA_DIR, exist_ok=True)
+
+    zip_path = kagglehub.dataset_download(dataset=DATASET, download_path=DATA_DIR)
+
+    if zip_path.endswith(".zip"):
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(DATA_DIR)
+        st.success(f"Dataset downloaded and extracted to: {DATA_DIR}")
+    else:
+        st.success(f"Dataset downloaded to: {zip_path}")
+
+    return DATA_DIR
+
 dataset_path = download_dataset()
 
-# Video upload
+# -------------------------------
+# Video Upload
+# -------------------------------
 video_file = st.file_uploader("Upload Video", type=["mp4", "avi"])
 stframe = st.empty()
 
 if video_file:
     tfile = tempfile.NamedTemporaryFile(delete=False)
     tfile.write(video_file.read())
-    cap = cv2.VideoCapture(tfile.name)
+    video_path = tfile.name
 
-    while cap.isOpened():
+    cap = cv2.VideoCapture(video_path)
+
+    while True:
         ret, frame = cap.read()
         if not ret:
             break
@@ -45,5 +80,8 @@ if video_file:
 
     cap.release()
 
+# -------------------------------
+# Interaction Stats
+# -------------------------------
 st.subheader("Interaction Stats")
 st.button("Plot Interaction Frequency", on_click=plot_interaction_stats)
